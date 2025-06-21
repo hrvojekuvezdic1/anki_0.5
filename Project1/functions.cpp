@@ -24,9 +24,16 @@ flashcard generateFlashcard(std::string card) {
     return flashcard;
 }
 
-std::string loadFlashcards(std::vector<flashcard>& flashcards) {
+std::string loadFlashcards(std::vector<flashcard>& flashcards, std::string filePath) {
+    std::ifstream check(filePath);
+    if (!check.good()) {
+        std::cout << "Database doesn't exist.\n";
+        std::ofstream create_out(filePath);
+        std::cout << "Database created automatically.\n";
+        create_out.close();
+    }
     std::ifstream file_in;
-    file_in.open("C:\\Users\\Hrvoje\\Documents\\Anki\\db\\database.txt", std::ifstream::in);
+    file_in.open(filePath, std::ifstream::in);
     int i = 0;
     std::string line;
     std::string text;
@@ -35,6 +42,7 @@ std::string loadFlashcards(std::vector<flashcard>& flashcards) {
         text.append("loaded: QUESTION - " + flashcards[i].getQuestion() + " ANSWER - " + flashcards[i].getAnswer() + " from the database.\n");
         i++;
     }
+    file_in.close();
     return text;
 }
 
@@ -46,14 +54,23 @@ void addFlashcard(std::vector<flashcard>& flashcards) {
     std::cout << "added: QUESTION - " + flashcards.back().getQuestion() + " ANSWER - " + flashcards.back().getAnswer() + " to temporary storage.\n";
 }
 
-std::string saveFlashcards(std::vector<flashcard>& flashcards) {
+std::string saveFlashcards(std::vector<flashcard>& flashcards, std::string filePath) {
+    std::ifstream check(filePath);
+    if (!check.good()) {
+        std::cout << "Database doesn't exist.\n";
+        std::ofstream create_out(filePath);
+        std::cout << "Database created automatically.\n";
+        create_out.close();
+    }
+    check.close();
     std::ofstream file_out;
-    file_out.open("C:\\Users\\Hrvoje\\Documents\\Anki\\Anki\\Anki\\x64\\Debug\\database.txt", std::ofstream::out);
+    file_out.open(filePath, std::ofstream::out);
     std::string text;
     for (int i = 0; i < flashcards.size(); i++) {
         file_out << flashcards[i].getQuestion() + "$" + flashcards[i].getAnswer() + "\n";
         text.append("saved: QUESTION - " + flashcards[i].getQuestion() + " ANSWER - " + flashcards[i].getAnswer() + " to the database.\n");
     }
+    file_out.close();
     return text;
 }
 

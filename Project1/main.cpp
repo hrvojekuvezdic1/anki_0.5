@@ -1,5 +1,7 @@
 #pragma warning(disable : 4996)
 
+#define FILEPATH ""
+
 #define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>
 #include <windows.h>
@@ -90,7 +92,7 @@ MyFrame::MyFrame(const wxString& title)
     btnStudyFlashcards->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     Bind(wxEVT_BUTTON, &MyFrame::onStudyFlashcards, this, btnStudyFlashcards->GetId());
 
-    CustomButton* btnQuit = new CustomButton(panel, wxID_ANY, "Quit", wxPoint(350, 300), wxSize(200, 50));
+    CustomButton* btnQuit = new CustomButton(panel, wxID_ANY, "Save and Quit", wxPoint(350, 300), wxSize(200, 50));
     btnQuit->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
     Bind(wxEVT_BUTTON, &MyFrame::onQuit, this, btnQuit->GetId());
 }
@@ -101,12 +103,13 @@ void MyFrame::onLoadFlashcards(wxCommandEvent& event) {
         return;
     }
     alreadyLoaded = true;
-    std::string text = loadFlashcards(MyFrame::flashcards);
+    std::string text = loadFlashcards(MyFrame::flashcards, FILEPATH);
+    if (text.empty()) return;
     if (MyFrame::flashcards.size() == 0) {
         std::cout << "Database empty!" << std::endl;
         return;
     }
-    std::cout << text << std::endl;
+    std::cout << text;
 }
 
 void MyFrame::onDisplayFlashcards(wxCommandEvent& event) {
@@ -141,25 +144,29 @@ void MyFrame::onAddFlashcard(wxCommandEvent& event) {
         if (answer.ShowModal() == wxID_OK) {
             wxString flashcardAnswer = answer.GetValue();
             MyFrame::flashcards.push_back(flashcard(flashcardQuestion.ToStdString(), flashcardAnswer.ToStdString()));
-            std::cout << "Flashcard added successfully!\n" << std::endl;
+            std::cout << "Flashcard added successfully!" << std::endl;
         }
     }
 }
 
 void MyFrame::onSaveFlashcards(wxCommandEvent& event) {
-    std::cout << saveLocalFlashcards() << std::endl;
+    std::cout << saveLocalFlashcards();
 }
 
 std::string MyFrame::saveLocalFlashcards() {
     if (MyFrame::flashcards.size() == 0) {
         return "Empty deck!";
     }
-    return saveFlashcards(MyFrame::flashcards);
+    return saveFlashcards(MyFrame::flashcards, FILEPATH);
 }
 
 void MyFrame::onStudyFlashcards(wxCommandEvent& event) {
     if (flashcards.size() == 0) {
         std::cout << "Empty deck!" << std::endl;
+        return;
+    }
+    else if (flashcards.size() == 1) {
+        std::cout << "Deck size too small (at least 2 cards needed)!" << std::endl;
         return;
     }
     std::vector<time_t> dateTimes;
@@ -219,7 +226,7 @@ void MyFrame::onStudyFlashcards(wxCommandEvent& event) {
                     flashcardsToSave.push_back(t->getFlashcard());
                 }
                 MyFrame::flashcards = flashcardsToSave;
-                saveFlashcards(flashcardsToSave);
+                saveFlashcards(flashcardsToSave, FILEPATH);
                 break;
             }
             _queue->enqueue(t);
@@ -233,7 +240,7 @@ void MyFrame::onStudyFlashcards(wxCommandEvent& event) {
                 flashcardsToSave.push_back(t->getFlashcard());
             }
             MyFrame::flashcards = flashcardsToSave;
-            saveFlashcards(flashcardsToSave);
+            saveFlashcards(flashcardsToSave, FILEPATH);
             break;
         }
     }
